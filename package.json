@@ -1,0 +1,27 @@
+{
+  "name": "microservice_coin_api",
+  "version": "1.0.0",
+  "description": "microservice api",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/armandopadilla/microservice_coin_api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/armandopadilla/microservice_coin_api/issues"
+  },
+  "homepage": "https://github.com/armandopadilla/microservice_coin_api#readme",
+  "dependencies": {
+    "aws-sdk": "^2.224.1",
+    "fastify": "^1.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.3"
+  }
+}
