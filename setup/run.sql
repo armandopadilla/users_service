@@ -1,0 +1,14 @@
+# Create Table
+CREATE TABLE users (
+  id int(11) AUTO_INCREMENT PRIMARY KEY,
+  firstName varchar(255) NOT NULL,
+  email varchar(255) NOT NULL UNIQUE,
+  password varchar(45) NOT NULL,
+  createdDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+# Create MySQL User
+CREATE USER 'dev'@'%' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON *.* TO 'dev'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;

@@ -1,76 +1,91 @@
 /****
- * Example is using AWS Kinesis
+ * User service
  *
+ * Sign up - Example of Fire-and-Forget. Writes to DB, and in the
+ * background the wallet is created.
+ *
+ * Get Wallets - Yes Yes I know this should live in the wallets service.
+ * I just want to prove a point. GAWD!!!!  Using this to demostrate creating
+ * and updating VIEWS.  Overall using CQRS Pattern
  ****/
 const fastify = require('fastify')();
+const Joi = require('joi');
+const { User } = require('./db');
+const DataStream = require('./utils/DataStream');
 
-fastify.get('/user/:username/wallet', async (request, reply) => {
-  const username = request.params.username || '';
+// Constants!
+const { WALLET_CREATE_WALLET_STREAM } = require('./constants');
 
-  // Get the currency rates from the coins service
-  // Connect to Stream and wait for the response from producer in specific topic
-
-  // Calculate the wallet
-
-  // Get the user info
-  const userInfo = {
-    username,
-    wallet: '100'
-  }
-
-  return { data: userInfo }
-
-});
+const opts = {
+ schema: {
+   body: Joi.object().keys({
+     email: Joi.string().email().min(6).max(255).required(),
+     firstName: Joi.string().min(1).max(255).required(),
+     password: Joi.string().min(6).max(40).required(),
+   }).required()
+ },
+ schemaCompiler: schema => data => Joi.validate(data, schema)
+}
 
 /**
- * Absraction layer to write to stream mechanism
- * Allows us to move away from Kinesis or Kafka when ready.
+ * Sign the user up.  Create their first wallet
+ * Example of Fire-and-Forget.  The creation of the wallet
+ * is handled by the wallet-service and triggered by event.
  **/
-const AWS = require('aws-sdk');
-const Kinesis = new AWS.Kinesis({
-  endpoint: '',
-  accessKeyId: '',
-  secretAccessKey: '',
-});
-const writeToStream = async (data, fromSer) => {
+fastify.post('/signup', opts, async (request, reply) => {
+  const { email, firstName, password } = request.body;
 
-}
+  // Save to the Db
+  try {
+    const userInfo = await User.query().insert({
+      email, firstName, password
+    });
 
-const readFromStream = async (topic) => {}
+    // Create the Wallet - Fire-and-Forget!
+    const payload = { userId: userInfo.id, type: 'btc' };
+    DataStream.write(WALLET_CREATE_WALLET_STREAM, payload);
 
-
-// I think there should be two pieces.  API for the public and a producer/consumer
-// for services.
-const getCurrentRates = async () => {
-  return [{
-    coin: 'BTC',
-    rate: '5',
-    currency: 'USD'
-  }]
-}
-
-fastify.get('/coin/rates', async (request, reply) => {
-
-  // Some dumb response for now.
-  const rates = await getCurrentRates();
-  return { data: rates }
-
+    return reply.send({ id: userInfo.id, email, firstName, password });
+  } catch (error) {
+    // Log this correctly dude.
+    // Use Boom...ish.
+    console.error(error.message);
+    return reply.code(500);
+  }
 });
 
-// Something here that consumes requests from Stream
-// and then produces a response.
-const codeToRunInternalComm = () => {}
+
+/**
+ * Get this specific user's wallets
+ * Example of CQRS. I would actually make this into a
+ * wallets service with an API endpoint of /user/:userId/wallets
+ * to fetch the wallets for a specific user. This would remove the
+ * need create the wallets VIEW in this service.
+ @todo
+ **/
+fastify.get('/user/:userId/wallets', {
+  schema: {
+    params: {
+      userId: Joi.number().required()
+    }
+  },
+  schemaCompiler: schema => data => Joi.validate(data, schema)
+}, async (request, reply) => {
+  const { userId } = request.params || '';
+
+  const wallets = [];
+  return { data: wallets }
+});
 
 
 const start = async () => {
   try {
-    await fastify.listen(3000);
-    fastify.log.info('server listening on 3000');
+    await fastify.listen(3001);
+    fastify.log.info('server listening on 3001');
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
   }
 }
-
 
 start();

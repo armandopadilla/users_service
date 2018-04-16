@@ -19,7 +19,11 @@
   "homepage": "https://github.com/armandopadilla/microservice_coin_api#readme",
   "dependencies": {
     "aws-sdk": "^2.224.1",
-    "fastify": "^1.2.1"
+    "fastify": "^1.2.1",
+    "joi": "^13.1.2",
+    "knex": "^0.14.6",
+    "mysql2": "^1.5.3",
+    "objection": "^1.1.5"
   },
   "devDependencies": {
     "nodemon": "^1.17.3"
